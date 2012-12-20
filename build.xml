@@ -21,6 +21,10 @@
   <property name="srcdir" value="src/main" />
   <property name="bindir" value="build/classes" />
 
+  <property name="test.home" value="src/test" />
+  <property name="reports.dir" value="build/reports" />
+  <property name="test.classes" value="build/testclasses" />
+
   <!-- Comment this out if you don't want to use the Eclipse Compiler for Java -->
   <!-- <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/> -->
 
@@ -37,6 +41,8 @@
       <fileset dir="${bindir}" includes="**/*"/>
       <fileset dir="${jardir}" includes="**/*"/>
     </delete>
+	<delete dir="${reports.dir}" quiet="true"/>
+	<delete dir="${test.classes}" quiet="true"/>
   </target>
 
   <!-- Compile the source java to class files -->
@@ -57,7 +63,7 @@
   </target>
 
   <!-- Package the robot for upload. -->
-  <target name="package" depends="compile">
+  <target name="package" depends="test">
     <tstamp>
       <format property="LONGSTAMP" pattern="yyyyMMdd-HHmm" locale="en"/>
     </tstamp>
@@ -108,4 +114,48 @@
       <include name="**/*.properties" />
     </jar>
   </target>
+
+  <target name="test" depends="compile">
+    <mkdir dir="${test.classes}" />
+    <mkdir dir="${reports.dir}" />
+    <mkdir dir="${reports.dir}/raw" />
+    <mkdir dir="${reports.dir}/html" />
+
+    <!-- First, compile the tests -->
+    <javac srcdir="${test.home}" destdir="${test.classes}" includeAntRuntime="no" encoding="UTF-8"
+      target="${build.version}" source="${build.version}" debug="off" >
+      <classpath path="${bindir}" />
+      <classpath>
+        <!-- The location of the JUnit version that you want to use -->
+        <pathelement location="lib/junit-4.8.1.jar" />
+      </classpath>
+    </javac>
+
+    <!-- Then, run them -->
+    <junit printsummary="yes" showoutput="yes" failureproperty="junit.failure">
+      <classpath path="${bindir}" />
+      <classpath path="${test.classes}" />
+      <classpath>
+        <!-- The location of the JUnit version that you want to use -->
+        <pathelement location="lib/junit-4.11.jar" />
+        <pathelement location="lib/ant-junit.jar"/>
+      </classpath>
+
+      <batchtest fork="no" todir="${reports.dir}/raw/">
+        <formatter type="xml" usefile="true" />
+        <fileset dir="${test.home}">
+          <include name="**/*.java" />
+        </fileset>
+      </batchtest>
+    </junit>
+
+    <junitreport todir="${reports.dir}/html">
+      <fileset dir="${reports.dir}/raw">
+        <include name="TEST-*.xml" />
+      </fileset>
+      <report format="frames" todir="${reports.dir}/html" />
+    </junitreport>
+    <fail if="junit.failure" message="Unit test(s) failed. See Junit reports for details." />
+  </target>
+
 </project>
