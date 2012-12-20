@@ -10,12 +10,10 @@
     </classpath>
   </taskdef>
 
-  <!-- Your settings, all you need to change is here -->
   <description>SkunkWorks Ant Build Script</description>
-  <property name="robot.classpath" value="com/bt/robocode/myteam" />
-  <property name="robot.name" value="MyFirstRobot" />
+  <loadproperties srcFile="robot.properties"/>
   <property name="addsource" value="true" />
-  <property name="build.version" value="1.5" />
+  <property name="build.version" value="1.6" />
 
   <property name="jardir" value="build/dist" />
   <property name="srcdir" value="src/main" />
@@ -47,6 +45,7 @@
 
   <!-- Compile the source java to class files -->
   <target name="compile">
+    <echo>Compiling ${robot.name}</echo>
     <!-- Delete all the current files so we can recompile with our compiler. -->
     <delete>
       <fileset dir="${basedir}" includes="**/*.class"/>
